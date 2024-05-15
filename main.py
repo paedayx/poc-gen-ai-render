@@ -3,6 +3,7 @@ from pydantic import BaseModel
 load_dotenv(find_dotenv())
 
 from fastapi import FastAPI
+import uvicorn
 
 from app.handlers.chatbot import conversation_history, conversation_history_v2, getChatHistory, conversation_history_v3
 from app.skl_speech_recognition.google_speech_recognition import convert_m3u8_to_wav, excecute_speech_recognition
@@ -65,10 +66,6 @@ class ChatBody(BaseModel):
 
 @app.post("/learning/{course_id}/chapter/{chapter_id}/chat")
 def chat_with_bot(course_id: int, chapter_id: int, payload: ChatBody):
-    print(course_id)
-    print(chapter_id)
-    print(payload)
-    print("xxxxxxxxx")
     try:
         collection_name = f"course-{course_id}-chapter-{chapter_id}"
         index_name = f"course-{course_id}-chapter-{chapter_id}"
@@ -147,3 +144,7 @@ def handle_text_message(event):
     response = conversation_history(query=text, user_id=1)
     reply_text = response
     line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
+
+if __name__ == "__main__":
+    port = os.getenv('PORT', 8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(port))
