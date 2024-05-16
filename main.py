@@ -11,9 +11,6 @@ from app.utils.video_utils import get_video_token, get_video_url
 from app.vector_stores.mongodb import add_vector
 
 from fastapi.responses import JSONResponse
-from linebot import LineBotApi, WebhookHandler
-from linebot.exceptions import InvalidSignatureError
-from linebot.models import MessageEvent, TextMessage, TextSendMessage
 from fastapi import Request, HTTPException
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -111,40 +108,7 @@ def getConversationHistory():
     result = getChatHistory(CHAT_HOSTORY_DB_NAME, CHAT_HISTORY_COLLECTION)
     return {"data": result}
 
-@app.post("/chat")
-def chat(query: str, user_id: int):
-    return conversation_history(query=query, user_id=user_id)
-
-@app.post("/chat_v2")
-def chat(query: str, user_id: int):
-    return conversation_history_v3()
-
-# inital linebot API
-line_bot_api = LineBotApi(CHANNEL_ACCESS_TOKEN)
-handler = WebhookHandler(CHANNEL_SECRET)
-
-@app.post("/webhook")
-async def webhook(request: Request):
-    signature = request.headers.get("X-Line-Signature")
-
-    # Get the request body as text
-    body = await request.body()
-
-    try:
-        handler.handle(body.decode(), signature)
-    except InvalidSignatureError:
-        raise HTTPException(status_code=400, detail="Invalid signature")
-
-    return JSONResponse(content={"success": True})
-
-@handler.add(MessageEvent, message=TextMessage)
-def handle_text_message(event):
-    text = event.message.text
-
-    response = conversation_history(query=text, user_id=1)
-    reply_text = response
-    line_bot_api.reply_message(event.reply_token, TextSendMessage(text=reply_text))
-
 if __name__ == "__main__":
+    print("this is __main__")
     port = os.getenv('PORT', 8000)
     uvicorn.run(app, host="0.0.0.0", port=int(port))
