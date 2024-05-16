@@ -48,7 +48,6 @@ def get_conversational_rag_chain(docs):
     If user question is about sensitive data like passwords , credit card numbers, or politics, just say sorry you can't say it.\
     If you don't know the answer, just say that you don't know. \
     Use three sentences maximum and keep the answer concise.\
-    Context of conversation is you are a helpful assistant that answer about detail of learning video and this is context of video:
 
     {context}"""
     qa_prompt = ChatPromptTemplate.from_messages(
