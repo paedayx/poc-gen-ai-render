@@ -11,6 +11,7 @@ chat_histories = {}
 
 CHAT_DB = 'vegapunk'
 CHAT_COLLECTION = 'chat_history'
+CHAT_COLLECTION_V2 = 'chat_history_v2'
 
 def conversation_history(query: str, user_id: int):
     chat_histories = []
@@ -131,6 +132,8 @@ def conversation_history_v3(
         chapter_id: int, 
         chapter_name: str
     ):
+    user_question_datetime = datetime.now()
+
     search_result = perform_similarity_search(db_name, collection_name, index_name, query)
     if len(search_result) != 0:
         context = search_result
@@ -138,12 +141,46 @@ def conversation_history_v3(
         data = find_all_vectors(db_name, collection_name)
         context = [Document(page_content=data)]
     conversational_rag_chain = get_conversational_rag_chain(context)
-    return conversational_rag_chain.invoke(
+
+    result = conversational_rag_chain.invoke(
                 {"input": query},
                 config={
                     "configurable": {"session_id": f"{user_id}-{chapter_id}"}
                 },
             )["answer"]
+    
+    ai_answer_datetime = datetime.now()
+
+    mongo_chat_histories = [
+        {
+            "user_id": user_id,
+            "user_email": user_email,
+            "content": query,
+            "type": "humen",
+            "course_id": course_id,
+            "course_name": course_name,
+            "chapter_id": chapter_id,
+            "chapter_name": chapter_name,
+            "created_at": user_question_datetime,
+            "updated_at": user_question_datetime
+        },
+        {
+            "user_id": user_id,
+            "user_email": user_email,
+            "content": result,
+            "type": "ai",
+            "course_id": course_id,
+            "course_name": course_name,
+            "chapter_id": chapter_id,
+            "chapter_name": chapter_name,
+            "created_at": ai_answer_datetime,
+            "updated_at": ai_answer_datetime
+        }
+    ]
+
+    add_documents(CHAT_DB, CHAT_COLLECTION_V2, mongo_chat_histories)
+
+    return result
 
 def getChatHistory(db_name: str, collection_name: str):
     results = []
