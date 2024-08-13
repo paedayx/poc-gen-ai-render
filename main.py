@@ -126,6 +126,7 @@ def getConversationHistory():
     result = getChatHistory(CHAT_HISTORY_DB_NAME, CHAT_HISTORY_COLLECTION)
     return {"data": result}
 
-@app.post("/chat_v2")
-def chat(query: str, user_id: int):
-    return conversation_history_v2()
+if __name__ == "__main__":
+    print("this is __main__")
+    port = os.getenv('PORT', 8000)
+    uvicorn.run(app, host="0.0.0.0", port=int(port))
