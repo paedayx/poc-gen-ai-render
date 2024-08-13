@@ -1,13 +1,10 @@
 from langchain.schema import HumanMessage, AIMessage
-from app.chains.conversation_chain_qa import conversational_qa_chain, get_conversational_qa_chain
+from app.chains.conversation_chain_qa import get_conversational_qa_chain
 from app.vector_stores.mongodb import perform_similarity_search, find_all_vectors, add_documents, find_many_by, find_all_chat_histories
 from langchain.docstore.document import Document
 from datetime import datetime
-from langchain.chains.summarize import load_summarize_chain
-from app.models.open_ai import open_ai_model
 from app.chains.conversation_session_chain import get_conversational_rag_chain
 from app.chains.conversation_redis_session_chain import get_conversation_redis_session_chain
-from translate import Translator
 from app.chains.translation_chain import translate_thai_to_english
 
 chat_histories = {}
