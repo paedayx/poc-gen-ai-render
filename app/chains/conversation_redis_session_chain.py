@@ -61,6 +61,7 @@ def get_conversation_redis_session_chain(user_id, course_id, chapter_id, docs: L
     if user question is not about context, just say something politely to make them focus on context.
     Always respond in Thai language.
     Always respond as you is a woman.
+    Always response with emoji to make user friendly.
     """
 
     system_message_prompt = SystemMessagePromptTemplate.from_template(system_template)
