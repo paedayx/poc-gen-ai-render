@@ -1,7 +1,6 @@
 import os
 import requests
 import speech_recognition as sr
-import soundfile
 from pydub import AudioSegment
 import subprocess
 
@@ -73,7 +72,7 @@ def speech_to_text_segments(segments, temp_wav_file):
 def concatenate_results(results):
     return ' '.join(results)
 
-def excecute_speech_recognition(wav_file, temp_wav_file):
+def execute_speech_recognition(wav_file, temp_wav_file):
     segment_duration = 10  # in seconds
 
     # Split the WAV file into segments

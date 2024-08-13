@@ -6,30 +6,16 @@ from datetime import datetime
 from langchain.chains.summarize import load_summarize_chain
 from app.models.open_ai import open_ai_model
 from app.chains.conversation_session_chain import get_conversational_rag_chain
+from app.chains.conversation_redis_session_chain import get_conversation_redis_session_chain
+from translate import Translator
+from app.chains.translation_chain import translate_thai_to_english
 
 chat_histories = {}
 
 CHAT_DB = 'vegapunk'
 CHAT_COLLECTION = 'chat_history'
 CHAT_COLLECTION_V2 = 'chat_history_v2'
-
-def conversation_history(query: str, user_id: int):
-    chat_histories = []
-    if f"{user_id}" in chat_histories :
-        chat_histories = chat_histories[f"{user_id}"]
-
-    result = conversational_qa_chain.invoke(
-        {
-            "question": query,
-            "chat_history": chat_histories
-        }
-    )
-
-    chat_histories.append(HumanMessage(content=query))
-    chat_histories.append(AIMessage(content=result.content))
-    chat_histories[f"{user_id}"] = chat_histories
-
-    return result.content
+CHAT_COLLECTION_V3 = 'chat_history_v3'
 
 def transform_chat_message(chat):
     if chat["type"] == "ai":
@@ -37,7 +23,7 @@ def transform_chat_message(chat):
     else:
         return HumanMessage(content=chat["content"])
 
-def conversation_history_v2(
+def conversation_history_v1(
         db_name: str, 
         collection_name: str, 
         index_name: str, 
@@ -120,7 +106,7 @@ def conversation_history_v2(
 
     return result.content
 
-def conversation_history_v3(
+def conversation_history_v2(
         db_name: str, 
         collection_name: str, 
         index_name: str, 
@@ -179,6 +165,70 @@ def conversation_history_v3(
     ]
 
     add_documents(CHAT_DB, CHAT_COLLECTION_V2, mongo_chat_histories)
+
+    return result
+
+def conversation_history_v3(
+        db_name: str, 
+        collection_name: str, 
+        index_name: str, 
+        query: str, 
+        user_id: int,
+        user_email: str, 
+        course_id: int, 
+        course_name: str, 
+        chapter_id: int, 
+        chapter_name: str
+    ):
+    user_question_datetime = datetime.now()
+
+    search_result = perform_similarity_search(db_name, collection_name, index_name, query)
+    if len(search_result) != 0:
+        context = search_result
+    else:
+        data = find_all_vectors(db_name, collection_name)
+        context = [Document(page_content=data)]
+    conversational_rag_chain = get_conversation_redis_session_chain(user_id=user_id, course_id=course_id, chapter_id=chapter_id, docs=context)
+
+    query_trans = translate_thai_to_english(query)
+
+    result = conversational_rag_chain.invoke(
+                {
+                    "question": query_trans,
+                    "chat_history": []
+                },
+            )["answer"]
+    
+    ai_answer_datetime = datetime.now()
+
+    mongo_chat_histories = [
+        {
+            "user_id": user_id,
+            "user_email": user_email,
+            "content": query,
+            "type": "human",
+            "course_id": course_id,
+            "course_name": course_name,
+            "chapter_id": chapter_id,
+            "chapter_name": chapter_name,
+            "created_at": user_question_datetime,
+            "updated_at": user_question_datetime
+        },
+        {
+            "user_id": user_id,
+            "user_email": user_email,
+            "content": result,
+            "type": "ai",
+            "course_id": course_id,
+            "course_name": course_name,
+            "chapter_id": chapter_id,
+            "chapter_name": chapter_name,
+            "created_at": ai_answer_datetime,
+            "updated_at": ai_answer_datetime
+        }
+    ]
+
+    add_documents(CHAT_DB, CHAT_COLLECTION_V3, mongo_chat_histories)
 
     return result
 
