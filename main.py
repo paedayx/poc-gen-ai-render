@@ -11,6 +11,7 @@ from app.vector_stores.mongodb import add_vector
 
 import os
 from fastapi.middleware.cors import CORSMiddleware
+import uvicorn
 
 
 CHANNEL_ACCESS_TOKEN = os.getenv('CHANNEL_ACCESS_TOKEN')
