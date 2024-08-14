@@ -19,7 +19,7 @@ CHANNEL_SECRET = os.getenv('CHANNEL_SECRET')
 
 VECTOR_DB_NAME = "vectorDB"
 CHAT_HISTORY_DB_NAME = "vegapunk"
-CHAT_HISTORY_COLLECTION = "chat_history"
+CHAT_COLLECTION_V3 = 'chat_history_v3'
 
 app = FastAPI()
 
@@ -124,7 +124,7 @@ def chat_with_bot_v3(course_id: int, chapter_id: int, payload: ChatBody):
     
 @app.get("/conversation-history")
 def getConversationHistory():
-    result = getChatHistory(CHAT_HISTORY_DB_NAME, CHAT_HISTORY_COLLECTION)
+    result = getChatHistory(CHAT_HISTORY_DB_NAME, CHAT_COLLECTION_V3)
     return {"data": result}
 
 if __name__ == "__main__":
