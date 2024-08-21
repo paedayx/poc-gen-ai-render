@@ -1,10 +1,11 @@
+from typing import Union
 from dotenv import load_dotenv, find_dotenv
 from pydantic import BaseModel
 load_dotenv(find_dotenv())
 
 from fastapi import FastAPI
 
-from app.handlers.chatbot import conversation_history_v1, getChatHistory, conversation_history_v2, conversation_history_v3
+from app.handlers.chatbot import conversation_history_v1, getChatHistory, conversation_history_v2, conversation_history_v3, set_chat_csat, get_user_csat
 from app.skl_speech_recognition.google_speech_recognition import convert_m3u8_to_wav, execute_speech_recognition
 from app.utils.video_utils import get_video_token, get_video_url
 from app.vector_stores.mongodb import add_vector
@@ -59,7 +60,7 @@ class ChatBody(BaseModel):
     course_name: str
     chapter_name: str
 
-@app.post("/learning/{course_id}/chapter/{chapter_id}/chat")
+@app.post("/v1/learning/{course_id}/chapter/{chapter_id}/chat")
 def chat_with_bot(course_id: int, chapter_id: int, payload: ChatBody):
     try:
         collection_name = f"course-{course_id}-chapter-{chapter_id}"
@@ -120,12 +121,63 @@ def chat_with_bot_v3(course_id: int, chapter_id: int, payload: ChatBody):
         )
     except Exception as e:
         print(e)
-        return "เกิดข้อผิดพลาด"
+        return {
+            "ai_response": "เกิดข้อผิดพลาด"
+        }
+
+@app.get("/v1/learning/{course_id}/chapter/{chapter_id}/csat/user/{user_id}")
+def check_csat_exist(course_id: int, chapter_id: int, user_id: int):
+    try:
+        docs = get_user_csat(
+            course_id=course_id,
+            chapter_id=chapter_id,
+            user_id=user_id
+        )
+        return {
+            "is_exist": len(docs) > 0
+        }
+    except Exception as e:
+        print(e)
+        return e
+    
+class Create_CSAT_Body(BaseModel):
+    user_id: int
+    user_email: str
+    course_name: str
+    chapter_name: str
+    score: Union[int, None] = None
+    chat_id_list: Union[list[str], None] = None
+    detail: Union[str, None] = None
+
+@app.post("/v1/learning/{course_id}/chapter/{chapter_id}/csat")
+def csat(course_id: int, chapter_id: int, payload: Create_CSAT_Body):
+    try:
+        doc_id = set_chat_csat(
+            score=payload.score,
+            chat_id_list=payload.chat_id_list,
+            user_id=payload.user_id, 
+            user_email=payload.user_email,
+            course_id=course_id, 
+            course_name=payload.course_name, 
+            chapter_id=chapter_id, 
+            chapter_name=payload.chapter_name,
+            detail=payload.detail,
+        )
+        return {
+            "csat_id": doc_id
+        }
+    except Exception as e:
+        print(e)
+        return e
     
 @app.get("/conversation-history")
 def getConversationHistory():
     result = getChatHistory(CHAT_HISTORY_DB_NAME, CHAT_COLLECTION_V3)
     return {"data": result}
+
+@app.post("/chat_v2")
+def chat(query: str, user_id: int):
+    return conversation_history_v2()
 
 if __name__ == "__main__":
     print("this is __main__")

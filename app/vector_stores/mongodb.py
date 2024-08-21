@@ -69,4 +69,11 @@ def find_many_by(db_name: str, collection_name: str, query: str):
 
 def add_documents(db_name: str, collection_name: str, documents: list):
     collection = cluster[db_name][collection_name]
-    collection.insert_many(documents)
+    docs = collection.insert_many(documents)
+    return docs.inserted_ids
+
+def update_document(db_name: str, collection_name: str, filter: dict, update_data: dict):
+    collection = cluster[db_name][collection_name]
+    update_query = { "$set": update_data }
+    doc = collection.update_one(filter, update_query)
+    return doc.upserted_id
