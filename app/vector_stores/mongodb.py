@@ -18,11 +18,14 @@ try:
 except Exception as e:
     logging.error(e)
 
-def add_vector(db_name: str, collection_name: str, index_name: str, text: str):
+def add_vector(db_name: str, collection_name: str, index_name: str, text: str, metadata: dict = None):
     doc = Document(page_content=text)
 
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=150)
-    docs = text_splitter.split_documents([doc])
+    
+    docs = []
+    for doc in text_splitter.split_documents([doc]):
+        docs.append(Document(page_content=doc.page_content, metadata=metadata))
 
     collection = cluster[db_name][collection_name]
 
@@ -63,6 +66,9 @@ def find_all_vectors(db_name: str, collection_name: str):
 
 def find_all_chat_histories(db_name: str, collection_name: str):
     return cluster[db_name][collection_name].find()
+
+def find_one(db_name: str, collection_name: str, query: str):
+    return cluster[db_name][collection_name].find_one(query)
 
 def find_many_by(db_name: str, collection_name: str, query: str):
     return cluster[db_name][collection_name].find(query)

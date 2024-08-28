@@ -1,19 +1,21 @@
 from langchain.schema import HumanMessage, AIMessage
 from app.chains.conversation_chain_qa import get_conversational_qa_chain
-from app.vector_stores.mongodb import perform_similarity_search, find_all_vectors, add_documents, find_many_by, find_all_chat_histories, update_document
+from app.vector_stores.mongodb import find_one, perform_similarity_search, find_all_vectors, add_documents, find_many_by, find_all_chat_histories, update_document
 from langchain.docstore.document import Document
 from datetime import datetime
 from app.chains.conversation_session_chain import get_conversational_rag_chain
-from app.chains.conversation_redis_session_chain import get_conversation_redis_session_chain
+from app.chains.conversation_redis_session_chain import get_conversation_redis_session_chain, get_conversation_redis_session_chain_v2
 from app.chains.translation_chain import translate_thai_to_english
 
 chat_histories = {}
 
+VECTOR_DB = 'vectorDB'
 VEGAPUNK_DB = 'vegapunk'
 CHAT_COLLECTION = 'chat_history'
 CHAT_COLLECTION_V2 = 'chat_history_v2'
 CHAT_COLLECTION_V3 = 'chat_history_v3'
 CSAT_COLLECTION = "csat"
+EXTRA_AI_PERSONALITY_COLLECTION = "extra_AI_personality"
 
 def transform_chat_message(chat):
     if chat["type"] == "ai":
@@ -188,7 +190,96 @@ def conversation_history_v3(
         context = [Document(page_content=data)]
     conversational_rag_chain = get_conversation_redis_session_chain(user_id=user_id, course_id=course_id, chapter_id=chapter_id, docs=context)
 
-    query_trans = translate_thai_to_english(query)
+    result = conversational_rag_chain.invoke(
+                {
+                    "question": query,
+                    "chat_history": []
+                },
+            )["answer"]
+    
+    ai_answer_datetime = datetime.now()
+
+    mongo_chat_histories = [
+        {
+            "user_id": user_id,
+            "user_email": user_email,
+            "content": query,
+            "type": "human",
+            "course_id": course_id,
+            "course_name": course_name,
+            "chapter_id": chapter_id,
+            "chapter_name": chapter_name,
+            "created_at": user_question_datetime,
+            "updated_at": user_question_datetime,
+        },
+        {
+            "user_id": user_id,
+            "user_email": user_email,
+            "content": result,
+            "type": "ai",
+            "course_id": course_id,
+            "course_name": course_name,
+            "chapter_id": chapter_id,
+            "chapter_name": chapter_name,
+            "created_at": ai_answer_datetime,
+            "updated_at": ai_answer_datetime,
+
+        }
+    ]
+
+    doc_id_list = add_documents(VEGAPUNK_DB, CHAT_COLLECTION_V3, mongo_chat_histories)
+
+    return {
+        "ai_response": result,
+        "human_chat_id": str(doc_id_list[0]),
+        "ai_chat_id": str(doc_id_list[1])
+    }
+
+def conversation_history_v4(
+        query: str, 
+        user_id: int,
+        user_email: str, 
+        course_id: int, 
+        course_name: str, 
+        chapter_id: int, 
+        chapter_name: str
+    ):
+    user_question_datetime = datetime.now()
+
+    query_trans:str = translate_thai_to_english(query)
+    course_context_wording_list = ["course", "which chapter"]
+    is_course_query: bool = any(word in query_trans.lower() for word in course_context_wording_list)
+
+    if(is_course_query) :
+        collection_name = f"course-{course_id}"
+        index_name = f"course-{course_id}"
+    else :
+        collection_name = f"course-{course_id}-chapter-{chapter_id}"
+        index_name = f"course-{course_id}-chapter-{chapter_id}"
+
+    search_result = perform_similarity_search(VECTOR_DB, collection_name, index_name, query)
+
+    if len(search_result) != 0:
+        """
+            If search by course context, it always return search result.
+            If it not return search result that's mean that collection didn't have 'vector index' please set it.
+        """
+        context = search_result
+        
+    else:
+        data = find_all_vectors(VECTOR_DB, collection_name)
+        context = [Document(page_content=data)]
+
+    extra_AI_personality = find_one(VEGAPUNK_DB, EXTRA_AI_PERSONALITY_COLLECTION, {"course_id": course_id})
+
+    conversational_rag_chain = get_conversation_redis_session_chain_v2(
+        user_id=user_id, 
+        course_id=course_id, 
+        chapter_id=chapter_id, 
+        chapter_name=chapter_name,
+        docs=context,
+        extra_AI_personality= extra_AI_personality["prompt"] if extra_AI_personality else ""
+    )
 
     result = conversational_rag_chain.invoke(
                 {
@@ -281,7 +372,6 @@ def set_chat_csat(
                 "chapter_name": chapter_name,
                 "created_at": current,
                 "updated_at": current,
-                "test": True
             },
         ]
         doc_id = add_documents(VEGAPUNK_DB, CSAT_COLLECTION, mongo_chat_histories)[0]

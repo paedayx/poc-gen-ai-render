@@ -5,7 +5,7 @@ load_dotenv(find_dotenv())
 
 from fastapi import FastAPI
 
-from app.handlers.chatbot import conversation_history_v1, getChatHistory, conversation_history_v2, conversation_history_v3, set_chat_csat, get_user_csat
+from app.handlers.chatbot import conversation_history_v1, getChatHistory, conversation_history_v2, conversation_history_v3, conversation_history_v4, set_chat_csat, get_user_csat
 from app.skl_speech_recognition.google_speech_recognition import convert_m3u8_to_wav, execute_speech_recognition
 from app.utils.video_utils import get_video_token, get_video_url
 from app.vector_stores.mongodb import add_vector
@@ -49,7 +49,13 @@ def prepareChatbot(course_id: int, chapter_id: int, video_version: int):
 
     os.remove(output_wav_path)
 
-    add_vector(VECTOR_DB_NAME, f"course-{course_id}-chapter-{chapter_id}", f"course-{course_id}-chapter-{chapter_id}", text_result)
+    add_vector(
+        db_name=VECTOR_DB_NAME, 
+        collection_name=f"course-{course_id}-chapter-{chapter_id}", 
+        index_name=f"course-{course_id}-chapter-{chapter_id}", 
+        text=text_result,
+        metadata={"course_id": course_id, "chapter_id": chapter_id}
+    )
 
     return {"result": text_result}
 
@@ -111,6 +117,24 @@ def chat_with_bot_v3(course_id: int, chapter_id: int, payload: ChatBody):
             VECTOR_DB_NAME, 
             collection_name, 
             index_name, 
+            query=payload.query, 
+            user_id=payload.user_id, 
+            user_email=payload.user_email,
+            course_id=course_id, 
+            course_name=payload.course_name, 
+            chapter_id=chapter_id, 
+            chapter_name=payload.chapter_name
+        )
+    except Exception as e:
+        print(e)
+        return {
+            "ai_response": "เกิดข้อผิดพลาด"
+        }
+    
+@app.post("/v4/learning/{course_id}/chapter/{chapter_id}/chat")
+def chat_with_bot_v4(course_id: int, chapter_id: int, payload: ChatBody):
+    try:
+        return conversation_history_v4(
             query=payload.query, 
             user_id=payload.user_id, 
             user_email=payload.user_email,

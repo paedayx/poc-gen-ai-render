@@ -87,3 +87,97 @@ def get_conversation_redis_session_chain(user_id, course_id, chapter_id, docs: L
     )
     
     return chain
+
+
+def get_conversation_redis_session_chain_v2(user_id, course_id, chapter_id, chapter_name, docs: List[Document], extra_AI_personality):
+    for doc in docs:
+        if 'chapter_name' in doc.metadata:
+            doc.page_content =  "\nเนื้อหาจากบท " + doc.metadata['chapter_name'] + " :\n" + doc.page_content + "\n\n"
+        else :
+            doc.page_content =  "\nเนื้อหาจากบท " + chapter_name + " :\n" + doc.page_content + "\n\n"
+
+    # Create a vector store from the documents
+    text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
+    texts = text_splitter.split_documents(docs)
+
+    embeddings = OpenAIEmbeddings()
+    vectorstore = FAISS.from_documents(texts, embeddings)
+
+    # Set up the chat history and memory
+    history = UpstashRedisChatMessageHistory(
+        url=URL, token=TOKEN, ttl=500, session_id=f"LP-{user_id}-{course_id}-{chapter_id}"
+    )
+
+    memory = ConversationBufferMemory(
+        memory_key="chat_history",
+        return_messages=True,
+        chat_memory=history,
+    )
+
+    # Create a custom prompt template with a system message
+    system_template = """You are AI assistant that help user learning online course.
+
+==============
+{context}
+==============
+
+Do not try to make up an answer:
+    - If the answer to the question cannot be determined from the context alone, say "I cannot determine the answer to that."
+    - If the context is empty, just say "I do not know the answer to that."
+
+This is content that you must not answer:
+`
+1. violence
+2. hate speech
+3. profanity
+4. personal attacks
+5. political
+6. spam
+`
+
+Don't focus about chat history so much focus on user question and context.
+Chat history:
+    """
+
+    system_message_prompt = SystemMessagePromptTemplate.from_template(
+        system_template,
+    )
+
+    # extra_AI_personality_template = extra_AI_personality
+
+    # extra_AI_personality_system_message_prompt = SystemMessagePromptTemplate.from_template(
+    #     extra_AI_personality_template,
+    # )
+    
+    human_template = "{question}"
+    human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
+
+    focus_system_prompt_template = """if user question is not about context, just say something politely to make them focus on context.
+if user question is in another language or want answer in another language except Thai and English, please tell them you not support those language.
+if user ask for example exam you can give them example exam from context, it can be multiple choices or fill in the blank, if user choose incorrect answer tell them why it's not correct.
+Always respond in Thai language.
+Always respond as you is a woman.
+Always response with emoji to make user friendly.
+Always give them advice, let them think step by step, not answer of question. And not make them know any answer from your message until they answer correct by them self.
+    """
+
+    focus_system_message_prompt = SystemMessagePromptTemplate.from_template(focus_system_prompt_template)
+
+    chat_prompt = ChatPromptTemplate.from_messages([
+        system_message_prompt,
+        MessagesPlaceholder(variable_name="chat_history"),
+        focus_system_message_prompt,
+        human_message_prompt
+    ])
+
+    # Create the conversational retrieval chain with the custom prompt
+    chain = ConversationalRetrievalChain.from_llm(
+        llm=model,
+        retriever=vectorstore.as_retriever(),
+        memory=memory,
+        combine_docs_chain_kwargs={"prompt": chat_prompt},
+        verbose=True,
+        get_chat_history=lambda h : h,
+    )
+    
+    return chain
