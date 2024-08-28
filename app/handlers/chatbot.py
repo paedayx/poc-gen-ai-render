@@ -15,7 +15,7 @@ CHAT_COLLECTION = 'chat_history'
 CHAT_COLLECTION_V2 = 'chat_history_v2'
 CHAT_COLLECTION_V3 = 'chat_history_v3'
 CSAT_COLLECTION = "csat"
-EXTRA_AI_PERSONALITY_COLLECTION = "extra_AI_personality"
+EXTRA_AI_PROMPT_COLLECTION = "extra_AI_prompt"
 
 def transform_chat_message(chat):
     if chat["type"] == "ai":
@@ -211,6 +211,7 @@ def conversation_history_v3(
             "chapter_name": chapter_name,
             "created_at": user_question_datetime,
             "updated_at": user_question_datetime,
+            
         },
         {
             "user_id": user_id,
@@ -223,6 +224,7 @@ def conversation_history_v3(
             "chapter_name": chapter_name,
             "created_at": ai_answer_datetime,
             "updated_at": ai_answer_datetime,
+            
 
         }
     ]
@@ -270,7 +272,12 @@ def conversation_history_v4(
         data = find_all_vectors(VECTOR_DB, collection_name)
         context = [Document(page_content=data)]
 
-    extra_AI_personality = find_one(VEGAPUNK_DB, EXTRA_AI_PERSONALITY_COLLECTION, {"course_id": course_id})
+    extra_AI_prompt = find_one(VEGAPUNK_DB, EXTRA_AI_PROMPT_COLLECTION, {"course_id": course_id})
+
+    if(is_course_query and extra_AI_prompt) :
+        intro_chapter_id = extra_AI_prompt["intro_chapter_id"]
+        intro_data = find_all_vectors(VECTOR_DB, f"course-{course_id}-chapter-{intro_chapter_id}")
+        context.append(Document(page_content=intro_data, metadata={"chapter_name": "แนะนำคอร์ส"}))
 
     conversational_rag_chain = get_conversation_redis_session_chain_v2(
         user_id=user_id, 
@@ -278,7 +285,7 @@ def conversation_history_v4(
         chapter_id=chapter_id, 
         chapter_name=chapter_name,
         docs=context,
-        extra_AI_personality= extra_AI_personality["prompt"] if extra_AI_personality else ""
+        extra_AI_personality= extra_AI_prompt["personality_prompt"] if extra_AI_prompt else "",
     )
 
     result = conversational_rag_chain.invoke(
@@ -302,6 +309,7 @@ def conversation_history_v4(
             "chapter_name": chapter_name,
             "created_at": user_question_datetime,
             "updated_at": user_question_datetime,
+            
         },
         {
             "user_id": user_id,
@@ -314,6 +322,7 @@ def conversation_history_v4(
             "chapter_name": chapter_name,
             "created_at": ai_answer_datetime,
             "updated_at": ai_answer_datetime,
+            
         }
     ]
 
