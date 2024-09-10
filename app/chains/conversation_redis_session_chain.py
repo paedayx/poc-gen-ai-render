@@ -157,6 +157,7 @@ If user question is in another language or want answer in another language excep
 Always respond in Thai language.
 Always respond as you is a woman.
 Always response with emoji to make user friendly.
+You no need to ask user back if you already gave user information.
     """
 
     focus_system_message_prompt = SystemMessagePromptTemplate.from_template(focus_system_prompt_template)
@@ -186,9 +187,10 @@ AI: sure this is question
     exam_generate_system_message_prompt = SystemMessagePromptTemplate.from_template(exam_generate_prompt_template)
 
     hint_system_prompt_template = """
-    If message from human about exam example or them answer wrong, please just advice them how to solve that exam. don't tell them any answer of that exam.
-    If message from human is answer of exam and it wrong don't tell the correct answer, just advice them.
-    """
+If message from human about exam example or them answer wrong, please just advice them how to solve that exam. don't tell them any answer of that exam.
+If message from human is answer of exam and it wrong don't tell the correct answer, just advice them.
+If user ask for choice you can give them.
+"""
 
     hint_system_message_prompt = SystemMessagePromptTemplate.from_template(hint_system_prompt_template)
 
