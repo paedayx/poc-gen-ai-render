@@ -249,7 +249,7 @@ def conversation_history_v4(
     user_question_datetime = datetime.now()
 
     query_trans:str = translate_thai_to_english(query)
-    course_context_wording_list = ["course", "which chapter"]
+    course_context_wording_list = ["course", "which chapter", "which lesson", "which part"]
     is_course_query: bool = any(word in query_trans.lower() for word in course_context_wording_list)
 
     if(is_course_query) :

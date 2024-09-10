@@ -143,31 +143,63 @@ Chat history:
         system_template,
     )
 
-    # extra_AI_personality_template = extra_AI_personality
+    extra_AI_personality_template = extra_AI_personality
 
-    # extra_AI_personality_system_message_prompt = SystemMessagePromptTemplate.from_template(
-    #     extra_AI_personality_template,
-    # )
+    extra_AI_personality_system_message_prompt = SystemMessagePromptTemplate.from_template(
+        extra_AI_personality_template,
+    )
     
     human_template = "{question}"
     human_message_prompt = HumanMessagePromptTemplate.from_template(human_template)
 
-    focus_system_prompt_template = """if user question is not about context, just say something politely to make them focus on context.
-if user question is in another language or want answer in another language except Thai and English, please tell them you not support those language.
-if user ask for example exam you can give them example exam from context, it can be multiple choices or fill in the blank, if user choose incorrect answer tell them why it's not correct.
+    focus_system_prompt_template = """If user question is not about context, just say something politely to make them focus on context.
+If user question is in another language or want answer in another language except Thai and English, please tell them you not support those language.
 Always respond in Thai language.
 Always respond as you is a woman.
 Always response with emoji to make user friendly.
-Always give them advice, let them think step by step, not answer of question. And not make them know any answer from your message until they answer correct by them self.
     """
 
     focus_system_message_prompt = SystemMessagePromptTemplate.from_template(focus_system_prompt_template)
 
+    exam_generate_prompt_template = """
+If user ask for example exam you can give them example exam from context, it can be multiple choices or fill in the blank, if user choose incorrect answer tell them why it's not correct, give them only 1 exam example that not the same example that user used to do before.
+
+example 1
+Human: can you give me some exam example ?
+AI: sure this is question
+    "She ___ to the market yesterday."
+    1. go
+    2. went
+    3. gone
+    4. going
+
+example 2
+Human: can you give another question from context ?
+AI: sure this is question
+    "By the time she arrived, the movie ___ already ___."
+    1. has
+    2. had
+    3. have
+    4. been
+    """
+
+    exam_generate_system_message_prompt = SystemMessagePromptTemplate.from_template(exam_generate_prompt_template)
+
+    hint_system_prompt_template = """
+    If message from human about exam example or them answer wrong, please just advice them how to solve that exam. don't tell them any answer of that exam.
+    If message from human is answer of exam and it wrong don't tell the correct answer, just advice them.
+    """
+
+    hint_system_message_prompt = SystemMessagePromptTemplate.from_template(hint_system_prompt_template)
+
     chat_prompt = ChatPromptTemplate.from_messages([
+        extra_AI_personality_system_message_prompt,
         system_message_prompt,
+        exam_generate_system_message_prompt,
         MessagesPlaceholder(variable_name="chat_history"),
         focus_system_message_prompt,
-        human_message_prompt
+        human_message_prompt,
+        hint_system_message_prompt
     ])
 
     # Create the conversational retrieval chain with the custom prompt
