@@ -121,6 +121,10 @@ def get_conversation_redis_session_chain_v2(user_id, course_id, chapter_id, chap
 {context}
 ==============
 
+Do not try to make up an answer:
+    - If the answer to the question cannot be determined from the context alone, say "I cannot determine the answer to that."
+    - If the context is empty, just say "I do not know the answer to that."
+
 This is content that you must not answer:
 `
 1. violence
