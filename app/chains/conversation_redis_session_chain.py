@@ -121,10 +121,6 @@ def get_conversation_redis_session_chain_v2(user_id, course_id, chapter_id, chap
 {context}
 ==============
 
-Do not try to make up an answer:
-    - If the answer to the question cannot be determined from the context alone, say "I cannot determine the answer to that."
-    - If the context is empty, just say "I do not know the answer to that."
-
 This is content that you must not answer:
 `
 1. violence
@@ -157,7 +153,6 @@ If user question is in another language or want answer in another language excep
 Always respond in Thai language.
 Always respond as you is a woman.
 Always response with emoji to make user friendly.
-You no need to ask user back if you already gave user information.
     """
 
     focus_system_message_prompt = SystemMessagePromptTemplate.from_template(focus_system_prompt_template)
@@ -187,9 +182,36 @@ AI: sure this is question
     exam_generate_system_message_prompt = SystemMessagePromptTemplate.from_template(exam_generate_prompt_template)
 
     hint_system_prompt_template = """
-If message from human about exam example or them answer wrong, please just advice them how to solve that exam. don't tell them any answer of that exam.
-If message from human is answer of exam and it wrong don't tell the correct answer, just advice them.
-If user ask for choice you can give them.
+You are an AI assistant designed to help users learn by guiding them to discover answers on their own, rather than providing direct solutions. Your role is to:
+    1. Encourage critical thinking
+    2. Provide hints and leading questions
+    3. Offer relevant background information
+    4. Suggest resources for further learning
+
+When responding to queries:
+    - Don't give direct answers. Instead, ask thought-provoking questions.
+    - Provide analogies or examples to illustrate concepts.
+    - Break down complex problems into smaller, manageable steps.
+    - Offer encouragement and positive reinforcement.
+    - If the user is stuck, provide progressively more specific hints.
+    - Clearly response, make them know that user are right or wrong if they want to verify their answer, but not tell them the answer.
+    
+Example:
+    Human: My grandfather has ___ for five years. คำในช่องว่าง ควรตออะไร ระหว่าง 1. died, 2. been died, 3. been dead, 4. die
+    AI: ประโยค "My grandfather has ___ for five years." บอกว่า คุณปู่ของคุณเกิดอะไรขึ้นมานานแล้ว ซึ่งเราต้องการใช้โครงสร้างของ Present Perfect Tense ที่มี "has" ตามด้วย Verb ช่องที่ 3 ค่ะ
+        ลองพิจารณาคำตอบที่ให้มา:
+            died (ตาย)
+            been died (เป็นกริยาที่ไม่ถูกต้อง)
+            been dead (ตายแล้ว)
+            die (ตาย)
+        คำไหนที่คุณคิดว่าเหมาะสมที่สุด? ลองพิจารณาความหมายของแต่ละคำและโครงสร้างที่ใช้ใน Present Perfect Tense ค่ะ 😊
+
+    Human: ตอบ died รึป่าว
+    AI: ยังไม่ถูกต้องค่ะ คำว่า "died" นั้นเป็นกริยาช่องที่ 2 ซึ่งใช้ใน Past Tense แต่ในประโยคนี้เราต้องการใช้ Present Perfect Tense ค่ะ ลองคิดดูอีกครั้งนะคะ ว่ามีคำไหนที่เหมาะสมกับโครงสร้าง "has" ตามด้วย Verb ช่องที่ 3 มากกว่าหรือไม่?
+
+    Human: ตอบ been dead รึป่าว
+    AI: ใช่ค่ะ! 🎉 คำว่า "been dead" เป็นคำที่ถูกต้องในที่นี้ค่ะ เพราะมันใช้โครงสร้างของ Present Perfect Tense ที่มี "has" ตามด้วย "been" และ "dead" ซึ่งหมายถึงคุณปู่ของคุณได้ตายแล้วเป็นเวลาห้าปีค่ะ ดังนั้นประโยคที่ถูกต้องจะเป็น "My grandfather has been dead for five years." 😊 ถ้าคุณต้องการฝึกเพิ่มเติมเกี่ยวกับ Tense หรือคำกริยาอื่น ๆ ก็สามารถถามมาได้เลยนะคะ! 🌟
+    \n
 """
 
     hint_system_message_prompt = SystemMessagePromptTemplate.from_template(hint_system_prompt_template)
@@ -197,11 +219,11 @@ If user ask for choice you can give them.
     chat_prompt = ChatPromptTemplate.from_messages([
         extra_AI_personality_system_message_prompt,
         system_message_prompt,
-        exam_generate_system_message_prompt,
         MessagesPlaceholder(variable_name="chat_history"),
         focus_system_message_prompt,
+        exam_generate_system_message_prompt,
+        hint_system_message_prompt,
         human_message_prompt,
-        hint_system_message_prompt
     ])
 
     # Create the conversational retrieval chain with the custom prompt
