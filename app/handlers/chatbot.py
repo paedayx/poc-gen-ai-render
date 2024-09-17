@@ -251,7 +251,7 @@ def conversation_history_v4(
     query_trans:str = translate_thai_to_english(query)
     course_context_wording_list = ["course", "which chapter", "which lesson", "which part"]
     is_query_chapter_context = "บทที่" in query
-    is_course_query: bool = any(word in query_trans.lower() for word in course_context_wording_list) or is_query_chapter_context
+    is_course_query: bool = any(word in query_trans.lower() for word in course_context_wording_list)
 
     if(is_course_query) :
         collection_name = f"course-{course_id}"
