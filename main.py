@@ -1,9 +1,13 @@
+import secrets
 from typing import Union
 from dotenv import load_dotenv, find_dotenv
+from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 load_dotenv(find_dotenv())
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI, HTTPException, status
+from fastapi.openapi.docs import get_swagger_ui_html
+from fastapi.openapi.utils import get_openapi
 
 from app.handlers.chatbot import conversation_history_v1, getChatHistory, conversation_history_v2, conversation_history_v3, conversation_history_v4, set_chat_csat, get_user_csat
 from app.skl_speech_recognition.google_speech_recognition import convert_m3u8_to_wav, execute_speech_recognition
@@ -14,15 +18,11 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-
-CHANNEL_ACCESS_TOKEN = os.getenv('CHANNEL_ACCESS_TOKEN')
-CHANNEL_SECRET = os.getenv('CHANNEL_SECRET')
-
 VECTOR_DB_NAME = "vectorDB"
 CHAT_HISTORY_DB_NAME = "vegapunk"
 CHAT_COLLECTION_V3 = 'chat_history_v3'
 
-app = FastAPI()
+app = FastAPI(docs_url=None, redoc_url=None, openapi_url=None)
 
 origins = os.getenv('ALLOWED_ORIGINS', '').split(',')
 app.add_middleware(
@@ -33,31 +33,63 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+security = HTTPBasic()
+
+
+def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
+    correct_username = os.getenv("API_DOC_USERNAME")
+    correct_password = os.getenv("API_DOC_PASSWORD")
+    if not (secrets.compare_digest(credentials.username, correct_username) and
+            secrets.compare_digest(credentials.password, correct_password)):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Basic"},
+        )
+    return credentials.username
+
+
+@app.get("/docs", include_in_schema=False)
+async def get_documentation(username: str = Depends(get_current_username)):
+    return get_swagger_ui_html(openapi_url="/openapi.json", title="docs")
+
+@app.get("/openapi.json", include_in_schema=False)
+async def openapi(username: str = Depends(get_current_username)):
+    return get_openapi(title="FastAPI", version="0.1.0", routes=app.routes)
+
 @app.get("/")
 def read_root():
     return {"Hello": "World"}
 
 @app.get("/learning/{course_id}/chapter/{chapter_id}/version/{video_version}/prepare-chatbot")
 def prepareChatbot(course_id: int, chapter_id: int, video_version: int):
-    video_token = get_video_token(course_id, chapter_id)
-    m3u8_url = get_video_url(course_id, chapter_id, video_token, video_version)
-    
-    output_wav_path = f"app/skl_speech_recognition/wav/{course_id}-{chapter_id}.wav"
-    temp_wav_path = f"app/skl_speech_recognition/wav/{course_id}-{chapter_id}-temp.wav"
-    convert_m3u8_to_wav(m3u8_url, output_wav_path)
-    text_result = execute_speech_recognition(output_wav_path, temp_wav_path)
+    items = [
+]
 
-    os.remove(output_wav_path)
+    for item in items:
+        course_id = item["course_id"]
+        chapter_id = item["chapter_id"]
+        chapter_name = item["chapter_name"]
+        video_version = item["video_version"]
+        video_token = get_video_token(course_id, chapter_id)
+        m3u8_url = get_video_url(course_id, chapter_id, video_token, video_version)
+        
+        output_wav_path = f"app/skl_speech_recognition/wav/{course_id}-{chapter_id}.wav"
+        temp_wav_path = f"app/skl_speech_recognition/wav/{course_id}-{chapter_id}-temp.wav"
+        convert_m3u8_to_wav(m3u8_url, output_wav_path)
+        result = execute_speech_recognition(output_wav_path, temp_wav_path)
 
-    add_vector(
-        db_name=VECTOR_DB_NAME, 
-        collection_name=f"course-{course_id}-chapter-{chapter_id}", 
-        index_name=f"course-{course_id}-chapter-{chapter_id}", 
-        text=text_result,
-        metadata={"course_id": course_id, "chapter_id": chapter_id}
-    )
+        os.remove(output_wav_path)
 
-    return {"result": text_result}
+        add_vector(
+            db_name=VECTOR_DB_NAME, 
+            collection_name=f"course-{course_id}-chapter-{chapter_id}", 
+            index_name=f"course-{course_id}-chapter-{chapter_id}", 
+            text=result,
+            metadata={"course_id": course_id, "chapter_id": chapter_id, "chapter_name": chapter_name},
+        )
+
+    return {"result": True}
 
 class ChatBody(BaseModel):
     query: str
