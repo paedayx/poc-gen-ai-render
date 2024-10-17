@@ -1,3 +1,4 @@
+import os
 from langchain.schema import HumanMessage, AIMessage
 from app.chains.conversation_chain_qa import get_conversational_qa_chain
 from app.vector_stores.mongodb import find_one, perform_similarity_search, find_all_vectors, add_documents, find_many_by, find_all_chat_histories, update_document
@@ -5,7 +6,7 @@ from langchain.docstore.document import Document
 from datetime import datetime
 from app.chains.conversation_session_chain import get_conversational_rag_chain
 from app.chains.conversation_redis_session_chain import get_conversation_redis_session_chain, get_conversation_redis_session_chain_v2
-from app.chains.translation_chain import translate_thai_to_english
+from app.chains.translation_chain import translate_thai_to_english_agent
 
 chat_histories = {}
 
@@ -248,9 +249,8 @@ def conversation_history_v4(
     ):
     user_question_datetime = datetime.now()
 
-    query_trans:str = translate_thai_to_english(query)
+    query_trans:str = translate_thai_to_english_agent(query)
     course_context_wording_list = ["course", "which chapter", "which lesson", "which part"]
-    is_query_chapter_context = "บทที่" in query
     is_course_query: bool = any(word in query_trans.lower() for word in course_context_wording_list)
 
     if(is_course_query) :
@@ -404,4 +404,3 @@ def getChatHistory(db_name: str, collection_name: str):
             "updated_at": chat["updated_at"]
         })
     return results
-    

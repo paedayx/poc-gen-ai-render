@@ -3,6 +3,8 @@ from typing import Union
 from dotenv import load_dotenv, find_dotenv
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
+
+from app.handlers.hr_slack_bot import hr_slack_bot
 load_dotenv(find_dotenv())
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -14,9 +16,13 @@ from app.skl_speech_recognition.google_speech_recognition import convert_m3u8_to
 from app.utils.video_utils import get_video_token, get_video_url
 from app.vector_stores.mongodb import add_vector
 
+from slack_bolt import App as SlackApp
+from slack_bolt.adapter.socket_mode import SocketModeHandler as SlackSocketModeHandler
+
 import os
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+import threading
 
 VECTOR_DB_NAME = "vectorDB"
 CHAT_HISTORY_DB_NAME = "vegapunk"
@@ -235,7 +241,28 @@ def getConversationHistory():
 def chat(query: str, user_id: int):
     return conversation_history_v2()
 
+SLACK_APP_TOKEN = os.getenv('SLACK_APP_TOKEN')
+SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
+
+slackApp = SlackApp(token=SLACK_APP_TOKEN)
+
+#Message handler for Slack
+@slackApp.message(".*")
+def message_handler(message, say, logger):
+    output = hr_slack_bot(user_id = message['user'], query = message['text'])
+    say(output)
+
 if __name__ == "__main__":
     print("this is __main__")
+    # Create a thread for the Slack app
+    slack_thread = threading.Thread(
+        target=lambda: SlackSocketModeHandler(slackApp, SLACK_BOT_TOKEN).start(),
+        daemon=True  # This ensures the thread will shut down with the main program
+    )
+    
+    # Start the Slack thread
+    slack_thread.start()
+    
     port = os.getenv('PORT', 8000)
     uvicorn.run(app, host="0.0.0.0", port=int(port))
+    

@@ -26,5 +26,5 @@ prompt = PromptTemplate(
 translation_chain = LLMChain(llm=llm, prompt=prompt)
 
 # Function to translate Thai to English
-def translate_thai_to_english(thai_text):
+def translate_thai_to_english_agent(thai_text):
     return translation_chain.run(thai_text)
