@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-from langchain_text_splitters import CharacterTextSplitter
+from langchain.text_splitter import CharacterTextSplitter
 load_dotenv()
 import os
 
