@@ -5,7 +5,7 @@ from app.vector_stores.mongodb import add_documents
 VEGAPUNK_DB = 'vegapunk'
 CHAT_COLLECTION = 'hr_slack_bot_chat_history'
 
-def hr_slack_bot(user_id, query):
+def hr_slack_bot(user_id, query, user_email):
   user_question_datetime = datetime.now()
   hr_slack_chain = get_hr_slack_chain(user_id=user_id)
   result = hr_slack_chain.invoke(
@@ -22,6 +22,7 @@ def hr_slack_bot(user_id, query):
           "user_id": user_id,
           "content": query,
           "type": "human",
+          "user_email": user_email,
           "created_at": user_question_datetime,
           "updated_at": user_question_datetime,
           
@@ -30,6 +31,7 @@ def hr_slack_bot(user_id, query):
           "user_id": user_id,
           "content": result,
           "type": "ai",
+          "user_email": user_email,
           "created_at": ai_answer_datetime,
           "updated_at": ai_answer_datetime,
           

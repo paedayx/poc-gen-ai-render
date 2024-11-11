@@ -18,6 +18,7 @@ from app.vector_stores.mongodb import add_vector
 
 from slack_bolt import App as SlackApp
 from slack_bolt.adapter.socket_mode import SocketModeHandler as SlackSocketModeHandler
+from slack_sdk import WebClient
 
 import os
 from fastapi.middleware.cors import CORSMiddleware
@@ -244,19 +245,31 @@ def chat(query: str, user_id: int):
 SLACK_APP_TOKEN = os.getenv('SLACK_APP_TOKEN')
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
 
-slackApp = SlackApp(token=SLACK_APP_TOKEN)
+slack_app = SlackApp(token=SLACK_APP_TOKEN)
+slack_client = WebClient(token=SLACK_APP_TOKEN)
 
 #Message handler for Slack
-@slackApp.message(".*")
+@slack_app.message(".*")
 def message_handler(message, say, logger):
-    output = hr_slack_bot(user_id = message['user'], query = message['text'])
+    user_id = message['user']
+    query = message['text']
+    result = slack_client.users_info(user=user_id)
+
+    user_email = ""
+      
+    if result['ok']:
+        user_profile = result['user']['profile']
+        user_email = user_profile.get('email', 'No email found')
+    else:
+        print(f"Could not fetch user profile for user {user_id}")
+    output = hr_slack_bot(user_id=user_id, query=query, user_email=user_email)
     say(output)
 
 if __name__ == "__main__":
     print("this is __main__")
     # Create a thread for the Slack app
     slack_thread = threading.Thread(
-        target=lambda: SlackSocketModeHandler(slackApp, SLACK_BOT_TOKEN).start(),
+        target=lambda: SlackSocketModeHandler(slack_app, SLACK_BOT_TOKEN).start(),
         daemon=True  # This ensures the thread will shut down with the main program
     )
     
