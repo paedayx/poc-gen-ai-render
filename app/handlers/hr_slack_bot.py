@@ -39,5 +39,6 @@ def hr_slack_bot(user_id, query, user_email):
   ]
 
   add_documents(VEGAPUNK_DB, CHAT_COLLECTION, mongo_chat_histories)
+  print("======")
   
   return result

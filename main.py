@@ -251,6 +251,7 @@ slack_client = WebClient(token=SLACK_APP_TOKEN)
 #Message handler for Slack
 @slack_app.message(".*")
 def message_handler(message, say, logger):
+    print(message)
     user_id = message['user']
     query = message['text']
     result = slack_client.users_info(user=user_id)

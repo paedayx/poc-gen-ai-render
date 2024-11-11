@@ -74,6 +74,7 @@ def find_many_by(db_name: str, collection_name: str, query: str):
     return cluster[db_name][collection_name].find(query)
 
 def add_documents(db_name: str, collection_name: str, documents: list):
+    print(documents)
     collection = cluster[db_name][collection_name]
     docs = collection.insert_many(documents)
     return docs.inserted_ids
