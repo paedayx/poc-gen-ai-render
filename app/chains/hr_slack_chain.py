@@ -3,7 +3,7 @@ from langchain.text_splitter import CharacterTextSplitter
 load_dotenv()
 import os
 
-from openai import OpenAI
+from langchain_openai import ChatOpenAI
 from langchain.memory import ConversationBufferMemory
 from langchain_community.chat_message_histories.upstash_redis import UpstashRedisChatMessageHistory
 from langchain.prompts import ChatPromptTemplate, SystemMessagePromptTemplate, HumanMessagePromptTemplate, ChatPromptTemplate
@@ -13,7 +13,7 @@ from langchain.embeddings import OpenAIEmbeddings
 from app.documents.skilllane_hr_doc import hr_document
 from langchain.docstore.document import Document
 
-model = OpenAI(
+model = ChatOpenAI(
     model="gpt-4o-mini",
     temperature=0.6
 )

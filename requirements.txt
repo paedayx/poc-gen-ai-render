@@ -8,7 +8,6 @@ langchain-openai==0.0.3
 langchain==0.1.1
 line-bot-sdk
 openai==0.28.1
-openai==1.9.0
 pydub
 pyicu
 pymongo
