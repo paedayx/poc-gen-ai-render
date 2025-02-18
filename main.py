@@ -4,7 +4,6 @@ from dotenv import load_dotenv, find_dotenv
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 
-from app.handlers.hr_slack_bot import hr_slack_bot
 load_dotenv(find_dotenv())
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -24,6 +23,8 @@ import os
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 import threading
+
+from pythainlp.tokenize import word_tokenize
 
 VECTOR_DB_NAME = "vectorDB"
 CHAT_HISTORY_DB_NAME = "vegapunk"
@@ -242,6 +243,38 @@ def getConversationHistory():
 def chat(query: str, user_id: int):
     return conversation_history_v2()
 
+class Tokenize_payload(BaseModel):
+    text: str
+
+@app.post('/tokenize')
+def tokenize_text(payload: Tokenize_payload):
+    try:
+        # Check if 'text' field exists in request
+        if payload.text is None:
+            return {
+                'error': 'Missing text field in request'
+            }
+            
+        # Get text from request
+        text = payload.text
+        
+        # Tokenize text using PyThaiNLP
+        icu_tokens = word_tokenize(text, engine="icu")
+        newmm_tokens = word_tokenize(text, engine="newmm")
+        tokens = icu_tokens + newmm_tokens
+        # tokens = custom_tokenizer.word_tokenize(text)
+        
+        # Return tokenized result
+        return {
+            'original_text': text,
+            'tokens': tokens
+        }
+        
+    except Exception as e:
+        return {
+            'error': str(e)
+        }
+
 SLACK_APP_TOKEN = os.getenv('SLACK_APP_TOKEN')
 SLACK_BOT_TOKEN = os.getenv('SLACK_BOT_TOKEN')
 
@@ -251,7 +284,6 @@ slack_client = WebClient(token=SLACK_APP_TOKEN)
 #Message handler for Slack
 @slack_app.message(".*")
 def message_handler(message, say, logger):
-    print(message)
     user_id = message['user']
     query = message['text']
     result = slack_client.users_info(user=user_id)
@@ -263,7 +295,7 @@ def message_handler(message, say, logger):
         user_email = user_profile.get('email', 'No email found')
     else:
         print(f"Could not fetch user profile for user {user_id}")
-    output = hr_slack_bot(user_id=user_id, query=query, user_email=user_email)
+    output = "hi"
     say(output)
 
 if __name__ == "__main__":

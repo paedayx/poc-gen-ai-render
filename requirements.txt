@@ -9,10 +9,13 @@ langchain==0.1.1
 line-bot-sdk
 openai==1.9.0
 pydub
+pyicu
 pymongo
 pypdf
+pythainlp==2.0.0
 python-dotenv
 sentence_transformers
+slack-bolt
 soundfile
 SpeechRecognition
 streamlit
@@ -21,4 +24,3 @@ torch
 transformers
 upstash-redis==1.1.0
 uvicorn
-slack-bolt
