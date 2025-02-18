@@ -4,6 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
 from pydantic import BaseModel
 
+from app.handlers.hr_slack_bot import hr_slack_bot
 load_dotenv(find_dotenv())
 
 from fastapi import Depends, FastAPI, HTTPException, status
@@ -295,7 +296,7 @@ def message_handler(message, say, logger):
         user_email = user_profile.get('email', 'No email found')
     else:
         print(f"Could not fetch user profile for user {user_id}")
-    output = "hi"
+    output = hr_slack_bot(user_id=user_id, query=query, user_email=user_email)
     say(output)
 
 if __name__ == "__main__":
