@@ -7,7 +7,7 @@ langchain-core==0.1.15
 langchain-openai==0.0.3
 langchain==0.1.1
 line-bot-sdk
-openai==0.28.1
+openai
 pydub
 pyicu
 pymongo
