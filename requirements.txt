@@ -2,11 +2,12 @@ certifi
 faiss-cpu==1.7.4
 fastAPI
 huggingface_hub
-langchain-community
-langchain-core
-langchain-openai
-langchain
+langchain-community==0.0.13
+langchain-core==0.1.15
+langchain-openai==0.0.3
+langchain==0.1.1
 line-bot-sdk
+openai==0.28.1
 openai==1.9.0
 pydub
 pyicu
