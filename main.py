@@ -109,8 +109,8 @@ class ChatBody(BaseModel):
     user_id: str
     platform: Union[str, None] = None
     user_email: str
-    course_name: str
-    chapter_name: str
+    course_name: Union[str, None] = None
+    chapter_name: Union[str, None] = None
 
 @app.post("/v1/learning/{course_id}/chapter/{chapter_id}/chat")
 def chat_with_bot(course_id: int, chapter_id: int, payload: ChatBody):
