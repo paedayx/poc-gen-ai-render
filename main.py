@@ -106,7 +106,7 @@ def prepareChatbot(course_id: int, chapter_id: int, video_version: int):
 
 class ChatBody(BaseModel):
     query: str
-    user_id: str
+    user_id: Union[str, int]
     platform: Union[str, None] = None
     user_email: str
     course_name: Union[str, None] = None
