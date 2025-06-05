@@ -1,3 +1,7 @@
+import warnings
+from langchain._api import LangChainDeprecationWarning
+warnings.simplefilter("ignore", category=LangChainDeprecationWarning)
+
 import secrets
 from typing import Union
 from dotenv import load_dotenv, find_dotenv
@@ -102,7 +106,8 @@ def prepareChatbot(course_id: int, chapter_id: int, video_version: int):
 
 class ChatBody(BaseModel):
     query: str
-    user_id: int
+    user_id: str
+    platform: Union[str, None] = None
     user_email: str
     course_name: str
     chapter_name: str
@@ -182,7 +187,9 @@ def chat_with_bot_v4(course_id: int, chapter_id: int, payload: ChatBody):
             course_id=course_id, 
             course_name=payload.course_name, 
             chapter_id=chapter_id, 
-            chapter_name=payload.chapter_name
+            chapter_name=payload.chapter_name,
+            platform=payload.platform or "b2c"
+
         )
     except Exception as e:
         print(e)

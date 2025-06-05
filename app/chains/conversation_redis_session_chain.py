@@ -89,7 +89,7 @@ def get_conversation_redis_session_chain(user_id, course_id, chapter_id, docs: L
     return chain
 
 
-def get_conversation_redis_session_chain_v2(user_id, course_id, chapter_id, chapter_name, docs: List[Document], extra_AI_personality):
+def get_conversation_redis_session_chain_v2(user_id, course_id, chapter_id, chapter_name, docs: List[Document], extra_AI_personality, platform: str):
     for doc in docs:
         if 'chapter_name' in doc.metadata:
             doc.page_content =  "\nเนื้อหาจากบท " + doc.metadata['chapter_name'] + " :\n" + doc.page_content + "\n\n"
@@ -105,7 +105,7 @@ def get_conversation_redis_session_chain_v2(user_id, course_id, chapter_id, chap
 
     # Set up the chat history and memory
     history = UpstashRedisChatMessageHistory(
-        url=URL, token=TOKEN, ttl=500, session_id=f"LP-{user_id}-{course_id}-{chapter_id}"
+        url=URL, token=TOKEN, ttl=500, session_id=f"{platform}-{user_id}-{course_id}-{chapter_id}"
     )
 
     memory = ConversationBufferMemory(

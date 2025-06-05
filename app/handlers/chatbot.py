@@ -245,7 +245,8 @@ def conversation_history_v4(
         course_id: int, 
         course_name: str, 
         chapter_id: int, 
-        chapter_name: str
+        chapter_name: str,
+        platform: str
     ):
     user_question_datetime = datetime.now()
 
@@ -287,6 +288,7 @@ def conversation_history_v4(
         chapter_name=chapter_name,
         docs=context,
         extra_AI_personality= extra_AI_prompt["personality_prompt"] if extra_AI_prompt else "",
+        platform=platform
     )
 
     result = conversational_rag_chain.invoke(
@@ -310,6 +312,7 @@ def conversation_history_v4(
             "chapter_name": chapter_name,
             "created_at": user_question_datetime,
             "updated_at": user_question_datetime,
+            "platform": platform,
             
         },
         {
@@ -323,7 +326,7 @@ def conversation_history_v4(
             "chapter_name": chapter_name,
             "created_at": ai_answer_datetime,
             "updated_at": ai_answer_datetime,
-            
+            "platform": platform,
         }
     ]
 
