@@ -94,13 +94,17 @@ def get_conversation_redis_session_chain_v2(user_id, course_id, chapter_id, chap
         if 'chapter_name' in doc.metadata:
             doc.page_content =  "\nเนื้อหาจากบท " + doc.metadata['chapter_name'] + " :\n" + doc.page_content + "\n\n"
         else :
-            doc.page_content =  "\nเนื้อหาจากบท " + chapter_name + " :\n" + doc.page_content + "\n\n"
+            doc.page_content =  "\n" + doc.page_content + "\n\n"
 
     # Create a vector store from the documents
     text_splitter = CharacterTextSplitter(chunk_size=1000, chunk_overlap=0)
     texts = text_splitter.split_documents(docs)
 
     embeddings = OpenAIEmbeddings()
+
+    if len(texts) == 0:
+        texts = [Document(page_content="")]
+
     vectorstore = FAISS.from_documents(texts, embeddings)
 
     # Set up the chat history and memory
