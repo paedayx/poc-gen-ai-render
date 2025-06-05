@@ -56,21 +56,28 @@ Tax ID: 0107567000171
 - 10% discount at Virgin Active for annual package memberships until the end of 2024
 
 **Provident Fund**
-Employee Contribution Rate: 2-15%	
-Employer Contribution Rate
-(Equivalent to the employee's savings but not more than)
-- Less than 2 years :	                        2%	
-- 2 years but not more than 3 years : 	4%	
-- 3 years but not more than 5 years :	5%
-- 5 years but not more than 7 years :	8%	
-- Above 7 years : 10%
+***อัตราเงินสะสม กองทุนสำรองเลี้ยงชีพ (ส่วนของพนักงาน)***
+สะสมได้ตั้งแต่ 2 - 15 % ของเงินเดือน
 
-เงื่อนไขการจ่ายเงินสมทบและผลประโยชน์เงินสมทบ
-- Less than 2 years :	                        0%	
-- 2 years but not more than 3 years : 	25%	
-- 3 years but not more than 5 years :	50%
-- 5 years but not more than 7 years :	75%	
-- Above 7 years : 100%
+***อัตราเงินสมทบ กองทุนสำรองเลี้ยงชีพ (ส่วนของบริษัท)***
+เทียบเท่ากับเงินสะสมพนักงาน หรือ สูงสุดไม่เกิน ดังนี้
+• อายุงาน น้อยกว่า 2 ปี                     อัตราเงินสมทบเท่ากับ 2%
+• อายุงาน ครบ 2 ปี แต่น้อยกว่า 3 ปี   อัตราเงินสมทบเท่ากับ 4%
+• อายุงาน ครบ 3 ปี แต่น้อยกว่า 5 ปี   อัตราเงินสมทบเท่ากับ 5%
+• อายุงาน ครบ 5 ปี แต่น้อยกว่า 7 ปี   อัตราเงินสมทบเท่ากับ 8%
+• อายุงาน ครบ 7 ปี ขึ้นไป                 อัตราเงินสมทบเท่ากับ 10%
+
+***เงื่อนไขการจ่ายเงินสมทบ และ ผลประโยชน์เงินสมทบ***
+เงินสมทบพร้อมทั้งส่วนเฉลี่ยผลประโยชน์สุทธิที่จะได้รับ เมื่อสิ้นสุดการเป็นสมาชิก (อิงตามจำนวนปีที่เป็นสมาชิก) 
+• อายุงาน น้อยกว่า 2 ปี                     = ไม่มี
+• อายุงาน ครบ 2 ปี แต่น้อยกว่า 3 ปี   = 25%
+• อายุงาน ครบ 3 ปี แต่น้อยกว่า 5 ปี   = 50%
+• อายุงาน ครบ 5 ปี แต่น้อยกว่า 7 ปี   = 75%
+• อายุงาน ครบ 7 ปี ขึ้นไป                 = 100%
+
+***Provident Fund กรณีพนักงานลาออกจากกองทุน***
+พนักงานที่ลาออกจากกองทุน สามารถกลับเข้ามาเป็นสมาชิกใหม่ได้เพียงแค่ 1 ครั้ง โดยที่สมาชิกผู้นั้นจะต้องลาออกจากกองทุนมาแล้ว 1 ปีขึ้นไป 
+และ บริษัทจะเริ่มต้นนับอายุการเป็นสมาชิกใหม่ และจ่ายเงินสมทบโดยอิงตาม "จำนวนปีที่เป็นสมาชิก"
 
 *Apply a job*
 Click the link to explore interesting career opportunities https://www.skilllane.com/career or send your resume to our people team:  people-team@skillLane.com
@@ -89,6 +96,15 @@ https://docs.google.com/forms/d/e/1FAIpQLSc8M6FeY-PPXb9A2zcyPZYKCqwQ4wcXIQZdmBGV
 
 *Salary payment date*
 At SkillLane, salaries are paid on the 26th of each month. If the 26th falls on a public holiday or weekend, the salary will be paid on the preceding business day.
+
+*แก้ไขข้อมูลพนักงานในระบบ BambooHR*
+พนักงานสามารถดำเนินการแก้ไขข้อมูลในระบบ BambooHR ได้ด้วยตนเอง ซึ่งการเปลี่ยนแปลงข้อมูลบางอย่างอาจต้องได้รับอนุมัติจาก Admin
+
+*การประเมินผลการทำงาน*
+ระยะเวลาทดลองงานมีกำหนด 90-119 วัน นับตั้งแต่วันที่เริ่มเป็นพนักงาน
+
+*ข้อมูลวินัยและโทษทางวินัย*
+สามารถดูข้อมูลวินัยและโทษทางวินัยเพิ่มเติมได้ที่นี่ https://drive.google.com/file/d/11mLIQ4CAPqlWrtAeKSH-gzBLKbWyFgW4/view?usp=sharing
 
 If you have any further questions or need additional assistance, feel free to reach out to the People team!
 '''
